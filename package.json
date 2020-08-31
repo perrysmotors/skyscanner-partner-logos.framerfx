@@ -1,0 +1,21 @@
+{
+	"main": "dist/index.js",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/react": "^16.8"
+	},
+	"peerDependencies": {
+		"framer": "^1.0",
+		"react": "^16.8"
+	},
+	"framer": {
+		"id": "676e20a2-aac4-41c2-a3be-4de6b44b0807",
+		"displayName": "Skyscanner Partner Logos"
+	},
+	"author": "Giles Perry",
+	"dependencies": {
+		"@framer/framer.default": "^1.76.0"
+	},
+	"name": "@framer/skyscanner.skyscanner-partner-logos",
+	"version": "1.2.0"
+}
