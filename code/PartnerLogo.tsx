@@ -97,9 +97,6 @@ export function PartnerLogo(props) {
     }
 
     React.useEffect(() => {
-        const cache = localStorage.getItem(key)
-            ? JSON.parse(localStorage.getItem(key))
-            : {}
         getAndSetContent(assetID)
     }, [assetID, isThumb, logoVersionIndex])
 
