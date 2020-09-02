@@ -27,6 +27,7 @@ const [hotelIDs, hotelTitles] = getOptions(hotels)
 const [chargeCardIDs, chargeCardTitles] = getOptions(chargeCards)
 
 const baseURL = "https://gateway.skyscanner.net/brand-assets/v2/assets/"
+const placeholder = "https://static.framer.com/placeholder.png"
 // Use Virgin America as default logo
 const defaultAssetID = "0c981a80-89de-11e8-bf8d-cf6959597582"
 const defaultAssetURL =
@@ -40,14 +41,12 @@ export function PartnerLogo(props) {
         otaID,
         hotelID,
         chargeCardID,
-        logoVersionIndex,
+        assetVariantIndex,
         isThumb,
         hasFill,
         radius,
         ...rest
     } = props
-
-    const type = isThumb ? "thumbnails" : "logos"
 
     let assetID
     if (category === "OTA") {
@@ -68,7 +67,18 @@ export function PartnerLogo(props) {
         ? JSON.parse(localStorage.getItem(key))
         : {}
 
-    const [image, setImage] = React.useState(cache.imageURL || defaultAssetURL)
+    const [logoColour, setLogoColour] = React.useState(
+        cache.logoColourURL || defaultAssetURL
+    )
+    const [logoWhite, setLogoWhite] = React.useState(
+        cache.logoWhiteURL || defaultAssetURL
+    )
+    const [thumbColour, setThumbColour] = React.useState(
+        cache.thumbColourURL || defaultAssetURL
+    )
+    const [thumbWhite, setThumbWhite] = React.useState(
+        cache.thumbWhiteURL || defaultAssetURL
+    )
     const [backgroundColor, setBackgroundColor] = React.useState(
         cache.backgroundColor || "transparent"
     )
@@ -79,17 +89,30 @@ export function PartnerLogo(props) {
             const response = await fetch(url)
             const json = await response.json()
             const content = await json[assetID].content
-            const imageURL = content[type][logoVersionIndex].svg
-            const backgroundColor = content.colors[0].background.hex
+
+            const logoColourURL = content["logos"][0]?.svg || placeholder
+            const logoWhiteURL = content["logos"][1]?.svg || placeholder
+            const thumbColourURL = content["thumbnails"][0]?.svg || placeholder
+            const thumbWhiteURL = content["thumbnails"][1]?.svg || placeholder
+            const backgroundColor =
+                content.colors[0]?.background?.hex || "transparent"
 
             localStorage.setItem(
                 key,
                 JSON.stringify({
-                    imageURL: imageURL,
+                    assetID: assetID,
+                    logoColourURL: logoColourURL,
+                    logoWhiteURL: logoWhiteURL,
+                    thumbColourURL: thumbColourURL,
+                    thumbWhiteURL: thumbWhiteURL,
                     backgroundColor: backgroundColor,
                 })
             )
-            setImage(imageURL)
+
+            setLogoColour(logoColourURL)
+            setLogoWhite(logoWhiteURL)
+            setThumbColour(thumbColourURL)
+            setThumbWhite(thumbWhiteURL)
             setBackgroundColor(backgroundColor)
         } catch (err) {
             console.log(err)
@@ -97,15 +120,23 @@ export function PartnerLogo(props) {
     }
 
     React.useEffect(() => {
-        getAndSetContent(assetID)
-    }, [assetID, isThumb, logoVersionIndex])
+        if (assetID !== cache.assetID) getAndSetContent(assetID)
+    }, [assetID])
+
+    const logoVersion = () => {
+        if (assetVariantIndex === 0) {
+            return isThumb ? thumbColour : logoColour
+        } else {
+            return isThumb ? thumbWhite : logoWhite
+        }
+    }
 
     return (
         <Frame
             {...rest}
             radius={radius}
             backgroundColor={hasFill ? backgroundColor : "transparent"}
-            image={image}
+            image={logoVersion()}
             style={{
                 backgroundSize: "contain",
                 backgroundRepeat: "no-repeat",
@@ -156,7 +187,7 @@ addPropertyControls(PartnerLogo, {
         optionTitles: chargeCardTitles,
         hidden: ({ category }) => category !== "Payment",
     },
-    logoVersionIndex: {
+    assetVariantIndex: {
         type: ControlType.Enum,
         title: "Version",
         defaultValue: 0,
@@ -177,7 +208,7 @@ addPropertyControls(PartnerLogo, {
         defaultValue: false,
         enabledTitle: "Colour",
         disabledTitle: "None",
-        // hidden: ({ logoVersionIndex }) => logoVersionIndex === 0,
+        // hidden: ({ assetVariantIndex }) => assetVariantIndex === 0,
     },
     radius: {
         type: ControlType.Number,
